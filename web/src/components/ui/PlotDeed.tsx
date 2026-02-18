@@ -80,7 +80,7 @@ export default function PlotDeed({ plot, onClose, onClaim }: PlotDeedProps) {
             marginBottom: 6,
           }}
         >
-          &#x2B21; {plot.price} MON
+          &#x2B21; {plot.price} tBNB
         </div>
 
         {/* Status */}

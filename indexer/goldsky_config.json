@@ -1,6 +1,6 @@
 {
     "version": "1",
-    "name": "agentguilds",
+    "name": "agentguilds-bnb-testnet",
     "abis": {
         "GuildRegistry": {
             "path": "../contracts/out/GuildRegistry.sol/GuildRegistry.json"
@@ -9,9 +9,9 @@
     "instances": [
         {
             "abi": "GuildRegistry",
-            "address": "0x60395114FB889C62846a574ca4Cda3659A95b038",
-            "startBlock": 12128267,
-            "chain": "monad-testnet"
+            "address": "0x0000000000000000000000000000000000000000",
+            "startBlock": 0,
+            "chain": "bsc-testnet"
         }
     ]
 }

@@ -55,7 +55,7 @@ When the meme is about a specific chain/project, use their brand colors:
 
 - Ethereum: Purple/violet (#627EEA)
 - Solana: Purple/green gradient
-- Monad: Purple/pink (#9945FF, #FF6B9D)
+- BNB Chain: Yellow/black (#F0B90B, #1E2026)
 - Bitcoin: Orange (#F7931A)
 - Polygon: Purple (#8247E5)
 

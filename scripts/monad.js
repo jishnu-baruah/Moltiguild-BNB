@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 
 /**
- * MoltiGuild Blockchain Library
+ * AgentGuilds Blockchain Library — BNB Testnet
  *
  * Two layers:
- * - READS: Goldsky GraphQL subgraph (fast, no RPC load)
- * - WRITES: viem + Monad testnet RPC
+ * - READS: Direct RPC calls (no subgraph on BNB testnet)
+ * - WRITES: viem + BNB Testnet RPC
  */
 
 const { createPublicClient, createWalletClient, http, parseEther, formatEther, keccak256, toHex, encodePacked } = require('viem');
@@ -16,25 +16,25 @@ require('dotenv').config({ path: require('path').resolve(__dirname, '../.env') }
 // CONFIG
 // ═══════════════════════════════════════
 
-const MONAD_RPC = process.env.MONAD_RPC || 'https://testnet-rpc.monad.xyz';
-const CHAIN_ID = parseInt(process.env.CHAIN_ID || '10143');
-const GUILD_REGISTRY_ADDRESS = process.env.GUILD_REGISTRY_ADDRESS || '0x60395114FB889C62846a574ca4Cda3659A95b038';
+const MONAD_RPC = process.env.MONAD_RPC || 'https://data-seed-prebsc-1-s1.bnbchain.org:8545';
+const CHAIN_ID = parseInt(process.env.CHAIN_ID || '97');
+const GUILD_REGISTRY_ADDRESS = process.env.GUILD_REGISTRY_ADDRESS || '0x0000000000000000000000000000000000000000';
 const COORDINATOR_PRIVATE_KEY = process.env.COORDINATOR_PRIVATE_KEY;
-const GOLDSKY_ENDPOINT = process.env.GOLDSKY_ENDPOINT || 'https://api.goldsky.com/api/public/project_cmlgbdp3o5ldb01uv0nu66cer/subgraphs/agentguilds-monad-testnet-monad-testnet/v5/gn';
-const EXPLORER_URL = process.env.EXPLORER_URL || 'https://testnet.socialscan.io/tx/';
-const FAUCET_URL = process.env.FAUCET_URL || 'https://agents.devnads.com/v1/faucet';
-const IS_MAINNET = CHAIN_ID !== 10143;
+const GOLDSKY_ENDPOINT = process.env.GOLDSKY_ENDPOINT || '';
+const EXPLORER_URL = process.env.EXPLORER_URL || 'https://testnet.bscscan.com/tx/';
+const FAUCET_URL = process.env.FAUCET_URL || 'https://testnet.bnbchain.org/faucet-smart';
+const IS_MAINNET = false;
 
-// Chain definition (dynamic based on env)
+// Chain definition — BNB Testnet
 const monadChain = {
     id: CHAIN_ID,
-    name: IS_MAINNET ? 'Monad' : 'Monad Testnet',
-    nativeCurrency: { name: 'MON', symbol: 'MON', decimals: 18 },
+    name: 'BNB Testnet',
+    nativeCurrency: { name: 'tBNB', symbol: 'tBNB', decimals: 18 },
     rpcUrls: {
         default: { http: [MONAD_RPC] },
     },
     blockExplorers: {
-        default: { name: 'Explorer', url: EXPLORER_URL.replace(/\/tx\/$/, '') },
+        default: { name: 'BscScan', url: EXPLORER_URL.replace(/\/tx\/$/, '') },
     },
 };
 
@@ -267,26 +267,12 @@ function getContractConfig() {
 }
 
 // ═══════════════════════════════════════
-// GOLDSKY READS
+// SUBGRAPH READS (disabled on BNB — using direct RPC)
 // ═══════════════════════════════════════
 
 async function queryGoldsky(query, variables = {}) {
-    const res = await fetch(GOLDSKY_ENDPOINT, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query, variables }),
-    });
-
-    if (!res.ok) {
-        throw new Error(`Goldsky query failed: ${res.status} ${res.statusText}`);
-    }
-
-    const json = await res.json();
-    if (json.errors) {
-        throw new Error(`Goldsky error: ${JSON.stringify(json.errors)}`);
-    }
-
-    return json.data;
+    // No subgraph on BNB testnet — always fall through to RPC
+    throw new Error('Subgraph not available on BNB testnet');
 }
 
 async function getStatus() {

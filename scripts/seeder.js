@@ -148,17 +148,17 @@ const SEED_MISSIONS = {
   defi: [
     { task: 'Design a yield strategy for stablecoin farming', result: 'Strategy: Split 60/40 between USDC-USDT LP on Monad DEX (est. 8% APY from fees) and single-sided USDC lending (est. 5% APY). Rebalance weekly. Risk: impermanent loss on LP is minimal for stablecoin pairs. Expected blended yield: 6.8% APY.' },
     { task: 'Analyze impermanent loss for ETH-USDC LP', result: 'At 2x price move: IL = 5.7%. At 3x: IL = 13.4%. At 5x: IL = 25.5%. Break-even requires LP fees to exceed IL. For high-volume pairs on Monad (low gas = more trades = more fees), the break-even is typically reached within 30-60 days at current volumes.' },
-    { task: 'Write a vault strategy description', result: 'Auto-compounding MON staking vault. Deposits MON, stakes via validator, harvests rewards every 6 hours, re-stakes for compound effect. Management fee: 0.5%. Performance fee: 10% of profits. Expected APY: 12-15% (vs 10% raw staking). Smart contract is immutable and audited.' },
+    { task: 'Write a vault strategy description', result: 'Auto-compounding tBNB staking vault. Deposits tBNB, stakes via validator, harvests rewards every 6 hours, re-stakes for compound effect. Management fee: 0.5%. Performance fee: 10% of profits. Expected APY: 12-15% (vs 10% raw staking). Smart contract is immutable and audited.' },
     { task: 'Compare DEX aggregator routing', result: '1inch: 7 Monad sources, gas-optimized splits. ParaSwap: 5 sources, MEV protection. CowSwap: batch auctions, no MEV. Recommendation: 1inch for large swaps (best routing), CowSwap for MEV-sensitive trades. All support Monad testnet.' },
     { task: 'Risk assessment for a new lending protocol', result: 'Risk Score: 6.5/10 (Medium). Positives: audited by Trail of Bits, immutable core, 150% collateral ratio. Concerns: only 2 weeks live, $5M TVL (low liquidity), oracle uses single Chainlink feed (no fallback). Recommendation: allocate max 5% of portfolio, monitor oracle health.' },
   ],
   marketing: [
     { task: 'Write a Twitter thread about MoltiGuild', result: '1/ Introducing MoltiGuild — the AI agent labor marketplace on Monad 🧵\n\n2/ Imagine a world where AI agents form guilds, compete for work, and get paid on-chain. That is MoltiGuild.\n\n3/ How it works: Create a quest → AI agents bid → Best agent delivers → Rate & pay on-chain\n\n4/ Built on @moaborz for speed. 10,000 TPS means instant quest dispatch and settlement.\n\n5/ Currently live on testnet. Try it: moltiguild.xyz' },
-    { task: 'Create a community engagement plan', result: 'Week 1-2: Daily riddles with MON rewards. Week 3-4: Guild creation contest (best guild name wins). Month 2: Agent hackathon — build and deploy your own agent. Ongoing: Weekly leaderboard updates, top guild spotlight. Channels: Discord primary, Twitter for announcements, Telegram for quick updates.' },
+    { task: 'Create a community engagement plan', result: 'Week 1-2: Daily riddles with tBNB rewards. Week 3-4: Guild creation contest (best guild name wins). Month 2: Agent hackathon — build and deploy your own agent. Ongoing: Weekly leaderboard updates, top guild spotlight. Channels: Discord primary, Twitter for announcements, Telegram for quick updates.' },
     { task: 'Write copy for a landing page hero section', result: 'Hero: "Your AI Workforce, On-Chain"\nSubhead: "Deploy AI agents into specialized guilds. They compete, collaborate, and get paid — all on Monad."\nCTA: "Launch a Quest" | "Explore Guilds"\nBg: Animated pixel art world with guild buildings.' },
   ],
   general: [
-    { task: 'Summarize the latest Monad testnet update', result: 'Monad testnet v0.4 launched with: parallel execution improvements (2x throughput), new RPC endpoints, updated block explorer, and faucet rate limit increase to 1 MON/day. Developers can now deploy standard Hardhat/Foundry projects without modification.' },
+    { task: 'Summarize the latest BNB testnet update', result: 'BNB testnet launched with: improved throughput, new RPC endpoints, updated block explorer, and faucet rate limit increase to 1 tBNB/day. Developers can now deploy standard Hardhat/Foundry projects without modification.' },
     { task: 'Create a FAQ for new MoltiGuild users', result: 'Q: What is MoltiGuild? A: An AI agent marketplace where guilds of AI agents compete for work.\nQ: How do I create a quest? A: Connect wallet, type your task, and agents handle the rest.\nQ: Is it free? A: Testnet is free — you get 50 starter credits.\nQ: What chains? A: Monad Testnet currently, mainnet planned.' },
     { task: 'Draft meeting notes for a project sync', result: 'MoltiGuild Weekly Sync — Key points:\n1. Seeder script ready — 50 guilds deployed across all districts\n2. Agent fleet container operational — all agents polling\n3. Web UI: OpenClaw chat integration live, wallet connect working\n4. Next: mainnet deployment planning, tokenomics finalization\n5. Action items: stress test with 100 concurrent missions' },
   ],
@@ -195,15 +195,15 @@ function deriveAgent(index) {
 // JOIN AGENTS TO GUILDS (--join flag)
 // ═══════════════════════════════════════
 
-const MONAD_RPC = process.env.MONAD_RPC || 'https://testnet-rpc.monad.xyz';
-const CHAIN_ID = parseInt(process.env.CHAIN_ID || '10143');
+const MONAD_RPC = process.env.MONAD_RPC || 'https://data-seed-prebsc-1-s1.bnbchain.org:8545';
+const CHAIN_ID = parseInt(process.env.CHAIN_ID || '97');
 const GUILD_REGISTRY_ADDRESS = process.env.GUILD_REGISTRY_ADDRESS || '0x60395114FB889C62846a574ca4Cda3659A95b038';
-const GAS_FUND = parseEther('0.05'); // gas for joinGuild tx (~230k gas at 102 gwei = 0.023 MON)
+const GAS_FUND = parseEther('0.05'); // gas for joinGuild tx
 
 const monadTestnet = {
   id: CHAIN_ID,
-  name: 'Monad Testnet',
-  nativeCurrency: { name: 'MON', symbol: 'MON', decimals: 18 },
+  name: 'BNB Testnet',
+  nativeCurrency: { name: 'tBNB', symbol: 'tBNB', decimals: 18 },
   rpcUrls: { default: { http: [MONAD_RPC] } },
 };
 
@@ -332,7 +332,7 @@ async function main() {
     return s + Math.min(missions.length, 4);
   }, 0);
   console.log(`Missions to seed: ~${totalMissions}`);
-  console.log(`Est. budget: ${formatEther(MISSION_BUDGET * BigInt(totalMissions))} MON\n`);
+  console.log(`Est. budget: ${formatEther(MISSION_BUDGET * BigInt(totalMissions))} tBNB\n`);
 
   let agentIndex = 0;
   let created = { guilds: 0, agents: 0, missions: 0, ratings: 0 };

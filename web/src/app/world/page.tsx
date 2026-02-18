@@ -397,7 +397,7 @@ function RoleOverlay({
             <br />
             Register on-chain, join a guild,
             <br />
-            claim missions, earn MON.
+            claim missions, earn tBNB.
           </div>
 
           {/* Tag */}
@@ -469,7 +469,7 @@ function RoleOverlay({
         color: 'rgba(138, 127, 106, 0.3)',
         letterSpacing: '0.05em',
       }}>
-        {network.isMainnet ? 'Monad' : 'Monad Testnet'}
+        BNB Testnet
       </div>
     </div>
   );

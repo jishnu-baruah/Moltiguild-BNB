@@ -1,10 +1,9 @@
 #!/usr/bin/env node
 
 /**
- * MoltiGuild Coordinator API (v4)
+ * AgentGuilds Coordinator API — BNB Testnet
  *
  * Lightweight Express API for external agent communication.
- * Runs alongside OpenClaw gateway.
  *
  * Endpoints:
  *   POST /api/heartbeat        - Agent liveness check
@@ -12,7 +11,7 @@
  *   POST /api/claim-mission    - Claim a mission (on-chain v4)
  *   POST /api/join-guild       - Join a guild (on-chain v4)
  *   POST /api/leave-guild      - Leave a guild (on-chain v4)
- *   POST /api/deposit          - Deposit MON (on-chain v4)
+ *   POST /api/deposit          - Deposit tBNB (on-chain v4)
  *   POST /api/create-pipeline  - Create multi-agent mission (intra-guild)
  *   GET  /api/pipeline/:id     - Pipeline status
  *   GET  /api/pipelines        - All pipelines
@@ -52,7 +51,7 @@ app.get('/health', (req, res) => res.json({ ok: true, uptime: Math.floor(process
 
 // API discovery — machine-readable endpoint index for agents
 app.get('/api', (req, res) => res.json({
-    name: 'AgentGuilds Coordinator API',
+    name: 'AgentGuilds BNB Coordinator API',
     docs: 'https://moltiguild.fun/SKILL.md',
     endpoints: {
         discovery: {
@@ -87,7 +86,7 @@ app.get('/api', (req, res) => res.json({
         },
         credits: {
             'GET /api/credits/:userId': 'Check credit balance',
-            'POST /api/verify-payment': 'Verify MON transfer and credit user',
+            'POST /api/verify-payment': 'Verify tBNB transfer and credit user',
             'POST /api/auto-setup': 'Generate wallet + faucet + deposit (testnet only)',
         },
         treasury: {
@@ -270,8 +269,8 @@ async function saveUserWallet(userId, data) {
     saveJSONFile('wallets.json', wallets);
 }
 
-const FAUCET_URL = 'https://agents.devnads.com/v1/faucet';
-const SETUP_AMOUNT = '0.05'; // Give users 0.05 MON = 50 missions
+const FAUCET_URL = 'https://testnet.bnbchain.org/faucet-smart';
+const SETUP_AMOUNT = '0.05'; // Give users 0.05 tBNB = 50 missions
 
 async function autoSetupUser(userId) {
     // Check if already set up
@@ -287,18 +286,13 @@ async function autoSetupUser(userId) {
     wallet = { address: account.address, key: privateKey };
     await saveUserWallet(userId, wallet);
 
-    // On mainnet: no faucet, no auto-deposit — user must fund via wallet
-    if (monad.IS_MAINNET) {
-        return { alreadySetup: false, address: account.address, credits: 0, funded: false, mainnet: true };
-    }
-
-    // Faucet (testnet only)
+    // Faucet — BNB testnet faucet (manual, auto-faucet not supported)
     let faucetOk = false;
     try {
         const fRes = await fetch(FAUCET_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ address: account.address, chainId: 10143 }),
+            body: JSON.stringify({ address: account.address, chainId: 97 }),
         });
         const fData = await fRes.json();
         faucetOk = !!fData.txHash;
@@ -308,19 +302,19 @@ async function autoSetupUser(userId) {
         // Wait for faucet to land
         await new Promise(r => setTimeout(r, 5000));
 
-        // Send MON from user wallet to coordinator
+        // Send tBNB from user wallet to coordinator
         try {
             const { createWalletClient: cwc, http: httpT, parseEther: pe } = require('viem');
             const userWallet = cwc({
                 account,
                 chain: monad.monadTestnet,
-                transport: httpT(process.env.MONAD_RPC || 'https://testnet-rpc.monad.xyz'),
+                transport: httpT(process.env.MONAD_RPC || 'https://data-seed-prebsc-1-s1.bnbchain.org:8545'),
             });
 
             const hash = await userWallet.sendTransaction({
                 to: COORDINATOR_ADDRESS,
                 value: pe(SETUP_AMOUNT),
-                type: 'legacy',
+                // BNB testnet supports EIP-1559
             });
 
             const publicClient = monad.getPublicClient();
@@ -394,7 +388,7 @@ app.post('/api/register-agent', requireAuth('register-agent'), async (req, res) 
     try {
         const { capability, priceWei } = req.body;
         if (!capability) return res.status(400).json({ ok: false, error: 'Missing capability' });
-        const price = priceWei || '1000000000000000'; // default 0.001 MON
+        const price = priceWei || '1000000000000000'; // default 0.001 tBNB
 
         const result = await monad.registerAgentWithWallet(req.agentAddress, capability, price);
         broadcast('agent_registered', { agent: req.agentAddress, capability, priceWei: price, ...result });
@@ -481,7 +475,7 @@ app.post('/api/create-pipeline', async (req, res) => {
             return res.status(400).json({ ok: false, error: 'Need at least 2 steps (e.g. [{ "role": "writer" }, { "role": "designer" }])' });
         }
         if (!task) return res.status(400).json({ ok: false, error: 'Missing task description' });
-        if (!budget) return res.status(400).json({ ok: false, error: 'Missing budget (in MON, e.g. "0.01")' });
+        if (!budget) return res.status(400).json({ ok: false, error: 'Missing budget (in tBNB, e.g. "0.01")' });
 
         const counter = await incPipelineCounter();
         const pipelineId = `pipeline-${counter}`;
@@ -528,7 +522,7 @@ app.post('/api/create-pipeline', async (req, res) => {
                 totalSteps: steps.length,
                 currentStep: 1,
                 currentRole: steps[0].role,
-                budget: `${budget} MON`,
+                budget: `${budget} tBNB`,
                 ...txResult,
             },
         });
@@ -646,7 +640,7 @@ app.post('/api/submit-result', requireAuth('submit-result'), async (req, res) =>
                         contributors: pipeline.contributors.map(c => ({
                             agent: c.agent,
                             role: c.role,
-                            paid: monad.formatEther(perAgent) + ' MON',
+                            paid: monad.formatEther(perAgent) + ' tBNB',
                         })),
                     },
                 },
@@ -680,7 +674,7 @@ app.post('/api/submit-result', requireAuth('submit-result'), async (req, res) =>
 
         broadcast('mission_completed', {
             missionId: mid, agent: claimer,
-            paid: monad.formatEther(agentSplit) + ' MON',
+            paid: monad.formatEther(agentSplit) + ' tBNB',
             result: resultData,
             ...txResult,
         });
@@ -689,7 +683,7 @@ app.post('/api/submit-result', requireAuth('submit-result'), async (req, res) =>
             data: {
                 missionId: mid,
                 resultHash,
-                agentPaid: monad.formatEther(agentSplit) + ' MON',
+                agentPaid: monad.formatEther(agentSplit) + ' tBNB',
                 claimer,
                 ...txResult,
             },
@@ -705,7 +699,7 @@ app.post('/api/deposit', requireAuth('deposit'), async (req, res) => {
         const { amount } = req.body;
         if (!amount) return res.status(400).json({ ok: false, error: 'Missing amount' });
         const result = await monad.depositFunds(monad.parseEther(amount));
-        res.json({ ok: true, data: { amount: `${amount} MON`, ...result } });
+        res.json({ ok: true, data: { amount: `${amount} tBNB`, ...result } });
     } catch (err) {
         res.status(500).json({ ok: false, error: err.message });
     }
@@ -738,7 +732,7 @@ app.post('/api/admin/create-mission', requireAdmin, async (req, res) => {
 
         await saveMissionTask(missionId, task);
         broadcast('mission_created', { missionId, guildId: parseInt(guildId), task, budget });
-        res.json({ ok: true, data: { missionId, guildId: parseInt(guildId), task, taskHash, budget: `${budget} MON`, ...txResult } });
+        res.json({ ok: true, data: { missionId, guildId: parseInt(guildId), task, taskHash, budget: `${budget} tBNB`, ...txResult } });
     } catch (err) {
         res.status(500).json({ ok: false, error: err.message });
     }
@@ -789,7 +783,7 @@ app.post('/api/admin/create-guild', requireAdmin, async (req, res) => {
 app.get('/api/credits/:userId', async (req, res) => {
     try {
         const credits = await getCredits(req.params.userId);
-        res.json({ ok: true, data: { userId: req.params.userId, credits: `${credits} MON`, raw: credits, mainnet: monad.IS_MAINNET } });
+        res.json({ ok: true, data: { userId: req.params.userId, credits: `${credits} tBNB`, raw: credits, mainnet: monad.IS_MAINNET } });
     } catch (err) {
         res.status(500).json({ ok: false, error: err.message });
     }
@@ -801,30 +795,26 @@ app.post('/api/claim-starter', async (req, res) => {
         const { userId } = req.body;
         if (!userId) return res.status(400).json({ ok: false, error: 'userId required' });
 
-        if (monad.IS_MAINNET) {
-            return res.status(403).json({ ok: false, error: 'Mainnet requires MON deposit. Use the deposit flow in the web UI.' });
-        }
-
         const credits = await getCredits(userId);
         if (credits > 0) {
-            return res.json({ ok: true, data: { userId, credits: `${credits} MON`, raw: credits, alreadyClaimed: true } });
+            return res.json({ ok: true, data: { userId, credits: `${credits} tBNB`, raw: credits, alreadyClaimed: true } });
         }
 
         const wallet = await getUserWallet(userId);
         if (wallet) {
-            return res.json({ ok: true, data: { userId, credits: '0 MON', raw: 0, spent: true } });
+            return res.json({ ok: true, data: { userId, credits: '0 tBNB', raw: 0, spent: true } });
         }
 
         const STARTER_CREDITS = 0.05;
         await setCredits(userId, STARTER_CREDITS);
-        console.log(`[claim-starter] Granted ${STARTER_CREDITS} MON to new user ${userId}`);
-        res.json({ ok: true, data: { userId, credits: `${STARTER_CREDITS} MON`, raw: STARTER_CREDITS, granted: true } });
+        console.log(`[claim-starter] Granted ${STARTER_CREDITS} tBNB to new user ${userId}`);
+        res.json({ ok: true, data: { userId, credits: `${STARTER_CREDITS} tBNB`, raw: STARTER_CREDITS, granted: true } });
     } catch (err) {
         res.status(500).json({ ok: false, error: err.message });
     }
 });
 
-// POST /api/verify-payment - Verify MON transfer to coordinator, credit user
+// POST /api/verify-payment - Verify tBNB transfer to coordinator, credit user
 app.post('/api/verify-payment', async (req, res) => {
     try {
         const { txHash, userId } = req.body;
@@ -850,14 +840,14 @@ app.post('/api/verify-payment', async (req, res) => {
             return res.status(400).json({ ok: false, error: 'Transaction failed on-chain' });
         }
 
-        const amountMON = parseFloat(monad.formatEther(tx.value));
-        if (amountMON <= 0) {
-            return res.status(400).json({ ok: false, error: 'Transaction has no MON value' });
+        const amountBNB = parseFloat(monad.formatEther(tx.value));
+        if (amountBNB <= 0) {
+            return res.status(400).json({ ok: false, error: 'Transaction has no tBNB value' });
         }
 
         // Credit user
         const currentCredits = await getCredits(userId);
-        const newCredits = currentCredits + amountMON;
+        const newCredits = currentCredits + amountBNB;
         await setCredits(userId, newCredits);
         await addUsedTxHash(txHash.toLowerCase());
 
@@ -865,8 +855,8 @@ app.post('/api/verify-payment', async (req, res) => {
             ok: true,
             data: {
                 userId,
-                credited: `${amountMON} MON`,
-                totalCredits: `${newCredits} MON`,
+                credited: `${amountBNB} tBNB`,
+                totalCredits: `${newCredits} tBNB`,
                 txHash,
             },
         });
@@ -889,7 +879,7 @@ app.post('/api/auto-setup', async (req, res) => {
                 data: {
                     status: 'already_setup',
                     address: result.address,
-                    credits: `${result.credits} MON`,
+                    credits: `${result.credits} tBNB`,
                 },
             });
         }
@@ -899,7 +889,7 @@ app.post('/api/auto-setup', async (req, res) => {
             data: {
                 status: result.funded ? 'setup_complete' : 'setup_partial',
                 address: result.address,
-                credits: `${result.credits} MON`,
+                credits: `${result.credits} tBNB`,
                 funded: result.funded,
                 depositTx: result.depositTx,
                 error: result.error,
@@ -918,7 +908,7 @@ app.post('/api/admin/add-credits', requireAdmin, async (req, res) => {
         const currentCredits = await getCredits(userId);
         const newCredits = currentCredits + parseFloat(amount);
         await setCredits(userId, newCredits);
-        res.json({ ok: true, data: { userId, credited: `${amount} MON`, totalCredits: `${newCredits} MON` } });
+        res.json({ ok: true, data: { userId, credited: `${amount} tBNB`, totalCredits: `${newCredits} tBNB` } });
     } catch (err) {
         res.status(500).json({ ok: false, error: err.message });
     }
@@ -967,7 +957,7 @@ app.post('/api/admin/buyback', requireAdmin, async (req, res) => {
                 treasury: treasuryAddress,
                 balance: monad.formatEther(balance),
                 message: balance > 0n
-                    ? `Treasury has ${monad.formatEther(balance)} MON ready for buyback. Run: node scripts/buyback.js`
+                    ? `Treasury has ${monad.formatEther(balance)} tBNB ready for buyback.`
                     : 'Treasury is empty. Fees accumulate after mission completions.',
                 guildToken: process.env.GUILD_TOKEN_ADDRESS || null,
             },
@@ -1000,18 +990,12 @@ app.post('/api/smart-create', async (req, res) => {
 
             // Auto-setup if no credits
             if (credits < parseFloat(missionBudget)) {
-                if (monad.IS_MAINNET) {
-                    return res.status(402).json({
-                        ok: false,
-                        error: `Insufficient credits (${credits} MON). Deposit MON via the web UI or send to ${COORDINATOR_ADDRESS} and verify with /api/verify-payment`,
-                    });
-                }
                 const setup = await autoSetupUser(userId);
                 credits = setup.credits || 0;
                 if (credits < parseFloat(missionBudget)) {
                     return res.status(402).json({
                         ok: false,
-                        error: `Insufficient credits. Auto-setup ${setup.funded ? 'succeeded but balance too low' : 'failed: ' + (setup.error || 'unknown')}. Send MON to ${COORDINATOR_ADDRESS} and verify with /api/verify-payment`,
+                        error: `Insufficient credits. Auto-setup ${setup.funded ? 'succeeded but balance too low' : 'failed: ' + (setup.error || 'unknown')}. Send tBNB to ${COORDINATOR_ADDRESS} and verify with /api/verify-payment`,
                     });
                 }
             }
@@ -1047,7 +1031,7 @@ app.post('/api/smart-create', async (req, res) => {
                 matchConfidence: match.confidence,
                 task,
                 taskHash,
-                budget: `${missionBudget} MON`,
+                budget: `${missionBudget} tBNB`,
                 userId: userId || 'admin',
                 ...txResult,
             },
@@ -1121,7 +1105,7 @@ app.post('/api/smart-pipeline', requireAdmin, async (req, res) => {
                 totalSteps: steps.length,
                 currentStep: 1,
                 currentRole: steps[0].role,
-                budget: `${budget} MON`,
+                budget: `${budget} tBNB`,
                 ...txResult,
             },
         });
@@ -1491,7 +1475,7 @@ app.get('/api/guilds/:id/missions', async (req, res) => {
 app.get('/api/balance/:address', async (req, res) => {
     try {
         const balance = await monad.getUserBalance(req.params.address);
-        res.json({ ok: true, data: { address: req.params.address, balance: `${balance} MON` } });
+        res.json({ ok: true, data: { address: req.params.address, balance: `${balance} tBNB` } });
     } catch (err) {
         res.status(500).json({ ok: false, error: err.message });
     }
@@ -1682,7 +1666,7 @@ app.get('/api/events', (req, res) => {
     });
 
     // Send initial connection event
-    res.write(`event: connected\ndata: ${JSON.stringify({ message: 'Connected to MoltiGuild event stream', timestamp: new Date().toISOString() })}\n\n`);
+    res.write(`event: connected\ndata: ${JSON.stringify({ message: 'Connected to AgentGuilds BNB event stream', timestamp: new Date().toISOString() })}\n\n`);
 
     sseClients.add(res);
     console.log(`SSE client connected (${sseClients.size} total)`);
@@ -1715,7 +1699,7 @@ app.listen(PORT, '0.0.0.0', async () => {
     } catch (err) {
         console.warn('World governance init failed (run export-district-map.js first):', err.message);
     }
-    console.log(`MoltiGuild API (v4) running on port ${PORT}`);
+    console.log(`AgentGuilds BNB API running on port ${PORT}`);
     console.log(`Contract: ${monad.GUILD_REGISTRY_ADDRESS}`);
     console.log(`Endpoints:`);
     console.log(`  POST /api/heartbeat, /api/join-guild, /api/leave-guild`);

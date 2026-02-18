@@ -36,13 +36,13 @@ if (!MNEMONIC) {
 
 const CONFIG = {
   apiUrl: (process.env.API_URL || 'https://moltiguild-api.onrender.com').replace(/\/+$/, ''),
-  rpcUrl: process.env.RPC_URL || 'https://testnet-rpc.monad.xyz',
+  rpcUrl: process.env.RPC_URL || 'https://data-seed-prebsc-1-s1.bnbchain.org:8545',
   registryAddress: process.env.REGISTRY_ADDRESS || '0x60395114FB889C62846a574ca4Cda3659A95b038',
   goldskyEndpoint: process.env.GOLDSKY_ENDPOINT || 'https://api.goldsky.com/api/public/project_cmlgbdp3o5ldb01uv0nu66cer/subgraphs/agentguilds-monad-testnet-monad-testnet/v5/gn',
   pollInterval: parseInt(process.env.POLL_INTERVAL || '60') * 1000, // 60s default
   heartbeatInterval: parseInt(process.env.HEARTBEAT_INTERVAL || '300') * 1000,
   maxAgents: parseInt(process.env.AGENT_COUNT || '0'), // 0 = all
-  gasPerAgent: parseEther('0.002'), // MON to send each agent for gas
+  gasPerAgent: parseEther('0.002'), // tBNB to send each agent for gas
   // LLM config
   ollamaUrl: process.env.OLLAMA_API_URL || '',
   ollamaKey: process.env.OLLAMA_API_KEY || '',
@@ -53,9 +53,9 @@ const CONFIG = {
 const STATE_FILE = path.join(__dirname, '..', 'data', 'seeder-state.json');
 
 const monadTestnet = {
-  id: 10143,
-  name: 'Monad Testnet',
-  nativeCurrency: { name: 'MON', symbol: 'MON', decimals: 18 },
+  id: 97,
+  name: 'BNB Testnet',
+  nativeCurrency: { name: 'tBNB', symbol: 'tBNB', decimals: 18 },
   rpcUrls: { default: { http: [CONFIG.rpcUrl] } },
 };
 
@@ -324,7 +324,7 @@ class Agent {
           if (claimer !== '0x0000000000000000000000000000000000000000') continue;
 
           this.working = true;
-          this.log(`Claiming mission #${mission.missionId} (${formatEther(BigInt(mission.budget))} MON)`);
+          this.log(`Claiming mission #${mission.missionId} (${formatEther(BigInt(mission.budget))} tBNB)`);
 
           await this.claimMission(mission.missionId);
 
@@ -407,7 +407,7 @@ async function main() {
     if (balance < parseEther('0.0005')) {
       if (coordinator) {
         try {
-          agent.log(`Low balance (${formatEther(balance)} MON), funding...`);
+          agent.log(`Low balance (${formatEther(balance)} tBNB), funding...`);
           const hash = await coordinator.sendTransaction({
             to: agent.address,
             value: CONFIG.gasPerAgent,
@@ -419,11 +419,11 @@ async function main() {
           agent.log(`Funding failed: ${err.message}`);
         }
       } else {
-        agent.log(`Low balance (${formatEther(balance)} MON), no coordinator key to fund.`);
+        agent.log(`Low balance (${formatEther(balance)} tBNB), no coordinator key to fund.`);
       }
     }
   }
-  if (funded > 0) console.log(`Funded ${funded} agents with ${formatEther(CONFIG.gasPerAgent)} MON each.\n`);
+  if (funded > 0) console.log(`Funded ${funded} agents with ${formatEther(CONFIG.gasPerAgent)} tBNB each.\n`);
 
   // ── Join guilds ──
   console.log('Ensuring all agents are in their guilds...');

@@ -132,7 +132,7 @@ export default function GuildCreateModal({ plotId = 6, district = 'Creative Quar
               marginBottom: 20,
             }}
           >
-            Plot #{plotId} &middot; {district} &middot; {price} MON
+            Plot #{plotId} &middot; {district} &middot; {price} tBNB
           </div>
 
           {/* Guild Name */}

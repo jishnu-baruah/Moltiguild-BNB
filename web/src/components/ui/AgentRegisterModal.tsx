@@ -81,7 +81,7 @@ export default function AgentRegisterModal({ onClose }: AgentRegisterModalProps)
     try {
       // Step 1: Auto-setup (faucet)
       await autoSetup.mutateAsync();
-      progressSteps[1] = { label: 'Faucet: 0.1 MON received', status: 'done' };
+      progressSteps[1] = { label: 'Faucet: 0.1 tBNB received', status: 'done' };
       progressSteps[2] = { label: 'Joining guild...', status: 'active' };
       setSteps([...progressSteps]);
 
@@ -372,7 +372,7 @@ function FormView({
           className="font-mono"
           style={{ fontSize: 13, color: 'var(--parchment-dim)' }}
         >
-          MON
+          tBNB
         </span>
       </div>
 

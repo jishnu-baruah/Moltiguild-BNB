@@ -2,10 +2,7 @@
 
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { useCredits, useUser } from '@/lib/hooks';
-import { useNetwork, switchNetwork } from '@/lib/network';
-import { disconnectSSE } from '@/lib/sse';
-import { useQueryClient } from '@tanstack/react-query';
-import { useCallback } from 'react';
+import { useNetwork } from '@/lib/network';
 
 interface HeaderProps {
   onToggleSidebar: () => void;
@@ -18,22 +15,8 @@ export default function Header({ onToggleSidebar, onBack, showBack, onOpenDeposi
   const { data: credits, isLoading: creditsLoading } = useCredits();
   const { isWallet } = useUser();
   const network = useNetwork();
-  const queryClient = useQueryClient();
-  const hasCredits = credits && credits.raw > 0;
-  // On mainnet, only show balance if user has credits or wallet connected
-  // On testnet, always show (auto-granted)
-  const showBalance = hasCredits || isWallet || !network.isMainnet;
+  const showBalance = true; // Always show on testnet
   const displayBalance = creditsLoading ? '...' : (credits ? credits.raw.toFixed(4) : '0.0000');
-
-  const handleNetworkSwitch = useCallback(() => {
-    const nextKey = network.key === 'mainnet' ? 'testnet' : 'mainnet';
-    // Disconnect SSE so it reconnects to the new API
-    disconnectSSE();
-    // Switch the network store
-    switchNetwork(nextKey);
-    // Invalidate all queries so they refetch from new API
-    queryClient.invalidateQueries();
-  }, [network.key, queryClient]);
 
   return (
     <header
@@ -98,11 +81,10 @@ export default function Header({ onToggleSidebar, onBack, showBack, onOpenDeposi
 
       {/* Right: Wallet + Balance + Network + Sidebar toggle */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-        {/* MON Balance (credits from API) */}
+        {/* tBNB Balance (credits from API) */}
         {showBalance ? (
-          <button
+          <span
             className="font-mono"
-            onClick={network.isMainnet ? onOpenDeposit : undefined}
             style={{
               background: 'none',
               border: 'none',
@@ -110,99 +92,47 @@ export default function Header({ onToggleSidebar, onBack, showBack, onOpenDeposi
               color: 'var(--gold)',
               animation: 'coinPulse 3s ease-in-out infinite',
               fontWeight: 500,
-              cursor: network.isMainnet ? 'pointer' : 'default',
               padding: '4px 8px',
               borderRadius: 2,
-              transition: 'all 150ms ease',
-            }}
-            onMouseEnter={e => {
-              if (network.isMainnet) e.currentTarget.style.background = 'rgba(184,150,46,0.1)';
-            }}
-            onMouseLeave={e => {
-              e.currentTarget.style.background = 'none';
-            }}
-            title={network.isMainnet ? 'Deposit MON' : undefined}
-          >
-            &#x2B21; {displayBalance} MON
-          </button>
-        ) : (
-          <button
-            onClick={onOpenDeposit}
-            style={{
-              background: 'rgba(196,113,59,0.08)',
-              border: '1px solid rgba(196,113,59,0.25)',
-              fontSize: 11,
-              fontFamily: "'Crimson Pro', serif",
-              color: 'var(--ember)',
-              fontStyle: 'italic',
-              cursor: 'pointer',
-              padding: '4px 12px',
-              borderRadius: 2,
-              transition: 'all 150ms ease',
-            }}
-            onMouseEnter={e => {
-              e.currentTarget.style.background = 'rgba(196,113,59,0.15)';
-              e.currentTarget.style.borderColor = 'var(--ember)';
-            }}
-            onMouseLeave={e => {
-              e.currentTarget.style.background = 'rgba(196,113,59,0.08)';
-              e.currentTarget.style.borderColor = 'rgba(196,113,59,0.25)';
             }}
           >
-            &#x1F4B0; Deposit to start
-          </button>
-        )}
+            &#x2B21; {displayBalance} tBNB
+          </span>
+        ) : null}
 
-        {/* Network Switcher */}
-        <button
-          onClick={handleNetworkSwitch}
+        {/* Network badge */}
+        <span
           style={{
-            background: network.isMainnet
-              ? 'rgba(0, 180, 160, 0.1)'
-              : 'rgba(196, 113, 59, 0.1)',
-            border: `1px solid ${network.isMainnet ? 'var(--verdigris)' : 'var(--parchment-dim)'}`,
+            background: 'rgba(196, 113, 59, 0.1)',
+            border: '1px solid var(--parchment-dim)',
             borderRadius: 3,
             padding: '3px 10px',
-            cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
             gap: 5,
-            transition: 'all 150ms ease',
           }}
-          onMouseEnter={e => {
-            e.currentTarget.style.opacity = '0.8';
-            e.currentTarget.style.transform = 'scale(1.02)';
-          }}
-          onMouseLeave={e => {
-            e.currentTarget.style.opacity = '1';
-            e.currentTarget.style.transform = 'scale(1)';
-          }}
-          title={`Switch to ${network.key === 'mainnet' ? 'Testnet' : 'Mainnet'}`}
         >
           <span
             style={{
               width: 6,
               height: 6,
               borderRadius: '50%',
-              background: network.isMainnet ? 'var(--verdigris)' : 'var(--ember)',
-              boxShadow: network.isMainnet
-                ? '0 0 4px var(--verdigris)'
-                : '0 0 4px var(--ember)',
+              background: 'var(--ember)',
+              boxShadow: '0 0 4px var(--ember)',
             }}
           />
           <span
             style={{
               fontSize: 9,
               fontFamily: "'Crimson Pro', serif",
-              color: network.isMainnet ? 'var(--verdigris)' : 'var(--parchment-dim)',
+              color: 'var(--parchment-dim)',
               letterSpacing: '0.1em',
               fontWeight: 600,
             }}
           >
-            {network.isMainnet ? 'MAINNET' : 'TESTNET'}
+            BNB TESTNET
           </span>
-          <span style={{ fontSize: 8, color: 'var(--parchment-dim)', opacity: 0.6 }}>&#9662;</span>
-        </button>
+        </span>
 
         {/* RainbowKit Wallet Button */}
         <ConnectButton.Custom>

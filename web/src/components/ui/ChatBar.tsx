@@ -107,7 +107,7 @@ function formatResultObject(obj: Record<string, unknown>): { text: string; isErr
   if (obj.error) return { text: String(obj.error), isError: true };
   if (obj.missionId != null) return { text: `Mission #${obj.missionId} created`, isError: false };
   if (obj.result) return { text: String(obj.result).slice(0, 400), isError: false };
-  if (obj.credits != null) return { text: `Balance: ${obj.credits} MON`, isError: false };
+  if (obj.credits != null) return { text: `Balance: ${obj.credits} tBNB`, isError: false };
   // World governance responses
   if (obj.assignment) {
     const a = obj.assignment as Record<string, unknown>;
@@ -550,9 +550,9 @@ export default function ChatBar({ expanded, onToggle }: ChatBarProps) {
 
       switch (event.type) {
         case 'mission_created': {
-          // budget may or may not include "MON" suffix
-          const budgetStr = event.budget ? String(event.budget).replace(/ MON$/, '') : '';
-          const budgetInfo = budgetStr ? ` \u2022 ${budgetStr} MON` : '';
+          // budget may or may not include "tBNB" suffix
+          const budgetStr = event.budget ? String(event.budget).replace(/ tBNB$/, '') : '';
+          const budgetInfo = budgetStr ? ` \u2022 ${budgetStr} tBNB` : '';
           addMessage({
             role: 'system',
             text: `\u2694 Quest #${mid} dispatched${budgetInfo}`,
@@ -570,9 +570,9 @@ export default function ChatBar({ expanded, onToggle }: ChatBarProps) {
           break;
         }
         case 'mission_completed': {
-          // paid may already include "MON" suffix
-          const paidStr = event.paid ? String(event.paid).replace(/ MON$/, '') : '';
-          const payInfo = paidStr ? ` \u2014 paid ${paidStr} MON` : '';
+          // paid may already include "tBNB" suffix
+          const paidStr = event.paid ? String(event.paid).replace(/ tBNB$/, '') : '';
+          const payInfo = paidStr ? ` \u2014 paid ${paidStr} tBNB` : '';
           const agent = event.agent ? ` by ${truncateAddress(event.agent)}` : '';
           addMessage({
             role: 'system',
@@ -1310,7 +1310,7 @@ function MessageBubble({
   const isClaimEvent = message.text.includes('\u269C') || message.text.includes('accepted');
   const isCompleteEvent = message.text.includes('\u2713') || message.text.includes('complete');
   const isRateEvent = message.text.includes('\u2605') && message.text.includes('rated');
-  const isPaidEvent = message.text.includes('MON');
+  const isPaidEvent = message.text.includes('tBNB');
 
   const borderColor = isCompleteEvent ? 'var(--verdigris)' :
     isClaimEvent ? 'var(--indigo)' :

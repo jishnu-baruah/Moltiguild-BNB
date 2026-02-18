@@ -3,22 +3,22 @@
 /**
  * MoltiGuild $GUILD Buyback Script
  *
- * Swaps accumulated MON from the buyback treasury into $GUILD tokens
+ * Swaps accumulated tBNB from the buyback treasury into $GUILD tokens
  * via nad.fun bonding curve (or DEX if token has graduated).
  *
  * Usage:
  *   node scripts/buyback.js                  # Dry run (quote only)
  *   node scripts/buyback.js --execute        # Execute the swap
- *   node scripts/buyback.js --execute --max 0.5   # Max 0.5 MON per swap
+ *   node scripts/buyback.js --execute --max 0.5   # Max 0.5 tBNB per swap
  *
  * Required env vars:
  *   BUYBACK_TREASURY_KEY  — private key of the treasury wallet
  *   GUILD_TOKEN_ADDRESS   — $GUILD token address (default: 0x01511c69DB6f00Fa88689bd4bcdfb13D97847777)
  *
  * Optional env vars:
- *   MONAD_RPC             — RPC endpoint (default: https://rpc.monad.xyz)
+ *   MONAD_RPC             — RPC endpoint (default: https://data-seed-prebsc-1-s1.bnbchain.org:8545)
  *   SLIPPAGE_BPS          — slippage tolerance in basis points (default: 500 = 5%)
- *   MIN_BUYBACK_MON       — minimum MON balance to trigger buyback (default: 0.01)
+ *   MIN_BUYBACK_MON       — minimum tBNB balance to trigger buyback (default: 0.01)
  */
 
 const { createPublicClient, createWalletClient, http, parseEther, formatEther } = require('viem');
@@ -29,7 +29,7 @@ require('dotenv').config({ path: require('path').resolve(__dirname, '../.env') }
 // CONFIG
 // ═══════════════════════════════════════
 
-const MONAD_RPC = process.env.MONAD_RPC || 'https://rpc.monad.xyz';
+const MONAD_RPC = process.env.MONAD_RPC || 'https://data-seed-prebsc-1-s1.bnbchain.org:8545';
 const GUILD_TOKEN = process.env.GUILD_TOKEN_ADDRESS || '0x01511c69DB6f00Fa88689bd4bcdfb13D97847777';
 const SLIPPAGE_BPS = parseInt(process.env.SLIPPAGE_BPS || '500'); // 5% default
 const MIN_BUYBACK = parseEther(process.env.MIN_BUYBACK_MON || '0.01');
@@ -41,11 +41,11 @@ const NAD_DEX_ROUTER = '0x0B79d71AE99528D1dB24A4148b5f4F865cc2b137';
 
 // Chain definition
 const monadMainnet = {
-    id: 143,
-    name: 'Monad',
-    nativeCurrency: { name: 'MON', symbol: 'MON', decimals: 18 },
+    id: 97,
+    name: 'BNB Testnet',
+    nativeCurrency: { name: 'tBNB', symbol: 'tBNB', decimals: 18 },
     rpcUrls: { default: { http: [MONAD_RPC] } },
-    blockExplorers: { default: { name: 'SocialScan', url: 'https://monad.socialscan.io' } },
+    blockExplorers: { default: { name: 'BscScan', url: 'https://testnet.bscscan.com' } },
 };
 
 // ═══════════════════════════════════════
@@ -139,30 +139,30 @@ async function main() {
         transport: http(MONAD_RPC),
     });
 
-    // Check MON balance
+    // Check tBNB balance
     const monBalance = await publicClient.getBalance({ address: account.address });
-    console.log(`MON balance:     ${formatEther(monBalance)} MON`);
+    console.log(`tBNB balance:    ${formatEther(monBalance)} tBNB`);
 
     if (monBalance < MIN_BUYBACK) {
-        console.log(`Below minimum buyback threshold (${formatEther(MIN_BUYBACK)} MON). Nothing to do.`);
+        console.log(`Below minimum buyback threshold (${formatEther(MIN_BUYBACK)} tBNB). Nothing to do.`);
         return;
     }
 
-    // Reserve gas (0.005 MON)
+    // Reserve gas (0.005 tBNB)
     const gasReserve = parseEther('0.005');
     let swapAmount = monBalance - gasReserve;
     if (swapAmount <= 0n) {
-        console.log('Not enough MON after gas reserve. Nothing to do.');
+        console.log('Not enough tBNB after gas reserve. Nothing to do.');
         return;
     }
 
     // Apply max cap if set
     if (maxMon && swapAmount > maxMon) {
         swapAmount = maxMon;
-        console.log(`Capped swap to:  ${formatEther(swapAmount)} MON (--max)`);
+        console.log(`Capped swap to:  ${formatEther(swapAmount)} tBNB (--max)`);
     }
 
-    console.log(`Swap amount:     ${formatEther(swapAmount)} MON`);
+    console.log(`Swap amount:     ${formatEther(swapAmount)} tBNB`);
     console.log('');
 
     // Check token status on nad.fun
@@ -236,7 +236,7 @@ async function main() {
     });
 
     console.log(`TX submitted:    ${hash}`);
-    console.log(`Explorer:        https://monad.socialscan.io/tx/${hash}`);
+    console.log(`Explorer:        https://testnet.bscscan.com/tx/${hash}`);
 
     const receipt = await publicClient.waitForTransactionReceipt({ hash });
     console.log(`Status:          ${receipt.status}`);
@@ -249,7 +249,7 @@ async function main() {
         const bought = guildAfter - guildBefore;
         console.log('');
         console.log(`Buyback complete!`);
-        console.log(`Spent:           ${formatEther(swapAmount)} MON`);
+        console.log(`Spent:           ${formatEther(swapAmount)} tBNB`);
         console.log(`Received:        ${formatEther(bought)} $GUILD`);
         console.log(`$GUILD balance:  ${formatEther(guildAfter)}`);
     } else {

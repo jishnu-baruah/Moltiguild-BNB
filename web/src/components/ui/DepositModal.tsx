@@ -169,7 +169,7 @@ export default function DepositModal({ onClose }: DepositModalProps) {
                     marginBottom: 8,
                   }}
                 >
-                  Connect your wallet to deposit MON
+                  Connect your wallet to deposit tBNB
                 </div>
                 <div
                   style={{
@@ -182,7 +182,7 @@ export default function DepositModal({ onClose }: DepositModalProps) {
                 >
                   Deposit funds to the guild treasury to create quests.
                   <br />
-                  Each mission costs 0.001 MON.
+                  Each mission costs 0.001 tBNB.
                 </div>
                 <ConnectButton />
               </div>
@@ -298,7 +298,7 @@ export default function DepositModal({ onClose }: DepositModalProps) {
                           marginBottom: 6,
                         }}
                       >
-                        Deposit amount (MON)
+                        Deposit amount (tBNB)
                       </label>
                       <input
                         className="input-field"
@@ -384,7 +384,7 @@ export default function DepositModal({ onClose }: DepositModalProps) {
                         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                           <span>Fee split</span>
                           <span style={{ color: 'var(--parchment-dim)', fontSize: 12 }}>
-                            85% agents · 10% coord · 5% buyback
+                            85% agents · 10% coordinator · 5% treasury
                           </span>
                         </div>
                       </div>

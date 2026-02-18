@@ -38,18 +38,18 @@ export function useCredits() {
     queryFn: () => api.fetchCredits(userId),
     enabled: !!userId,
     refetchInterval: 30_000,
-    placeholderData: { userId: '', credits: '0 MON', raw: 0 },
+    placeholderData: { userId: '', credits: '0 tBNB', raw: 0 },
   });
 
-  // On testnet, auto-claim starter credits if balance is 0
+  // Auto-claim starter credits if balance is 0 (always testnet)
   useEffect(() => {
-    if (!network.isMainnet && query.data && query.data.raw <= 0 && userId && !claimedRef.current) {
+    if (query.data && query.data.raw <= 0 && userId && !claimedRef.current) {
       claimedRef.current = true;
       api.claimStarter(userId).then(() => {
         queryClient.invalidateQueries({ queryKey: ['credits'] });
       }).catch(() => {});
     }
-  }, [network.isMainnet, query.data, userId, queryClient]);
+  }, [query.data, userId, queryClient]);
 
   return query;
 }

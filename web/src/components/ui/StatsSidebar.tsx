@@ -24,13 +24,13 @@ function feedLabel(e: FeedEvent): string {
   switch (e.type) {
     case 'mission_completed':
       return e.paid
-        ? `Mission #${e.missionId} done \u2014 ${e.paid} MON`
+        ? `Mission #${e.missionId} done \u2014 ${e.paid} tBNB`
         : `Mission #${e.missionId} done`;
     case 'mission_rated':
       return `Rating ${'★'.repeat(e.score || 0)} #${e.missionId}`;
     case 'mission_created':
       return e.budget
-        ? `Mission #${e.missionId} \u2014 ${e.budget} MON`
+        ? `Mission #${e.missionId} \u2014 ${e.budget} tBNB`
         : `Mission #${e.missionId} created`;
     case 'mission_claimed':
       return e.agent
@@ -157,7 +157,7 @@ export default function StatsSidebar({ open }: StatsSidebarProps) {
           padding: '2px 0',
         }}
       >
-        &#x2B21; {balance} MON
+        &#x2B21; {balance} tBNB
       </div>
       <div
         style={{
@@ -180,7 +180,7 @@ export default function StatsSidebar({ open }: StatsSidebarProps) {
             marginBottom: 4,
           }}
         >
-          {network.isMainnet ? 'Deposit MON to fund missions' : 'Send MON to coordinator to top up'}
+          Send tBNB to coordinator to top up
         </div>
       )}
 
@@ -259,7 +259,7 @@ function OnChainWallet() {
           marginBottom: 6,
         }}
       >
-        &#x2B21; {Number(contractBalance).toFixed(4)} MON
+        &#x2B21; {Number(contractBalance).toFixed(4)} tBNB
       </div>
 
       {/* Action buttons */}
