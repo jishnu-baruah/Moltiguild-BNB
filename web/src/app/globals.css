@@ -1,0 +1,296 @@
+/* ── MoltiGuild — Arcane Cartography Design System ── */
+
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Crimson+Pro:ital,wght@0,400;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+/* ── Color System ── */
+:root {
+  --void:           #08090e;
+  --walnut:         #13110d;
+  --walnut-light:   #1e1a14;
+  --walnut-border:  #2a2318;
+
+  --parchment:      #d4c9a8;
+  --parchment-dim:  #8a7f6a;
+  --ink:            #3d3529;
+
+  --ember:          #c4713b;
+  --ember-glow:     #e8944f;
+  --gold:           #b8962e;
+  --gold-bright:    #d4b044;
+  --verdigris:      #5a9e7a;
+  --indigo:         #6b7db3;
+  --wine:           #8b3a3a;
+  --plum:           #7b5e8b;
+
+  --glow-ember:     rgba(196, 113, 59, 0.15);
+  --glow-gold:      rgba(184, 150, 46, 0.12);
+  --grain-opacity:  0.03;
+
+  --ease-panel:     cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ── Reset & Base ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--void);
+  color: var(--parchment);
+  font-family: 'Crimson Pro', Georgia, serif;
+  font-size: 15px;
+  line-height: 1.5;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Panel Base ── */
+.panel {
+  background: var(--walnut);
+  border: 1px solid var(--walnut-border);
+  border-radius: 2px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 245, 220, 0.04),
+    0 8px 32px rgba(0, 0, 0, 0.5);
+  position: relative;
+}
+
+.panel::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events: none;
+  border-radius: inherit;
+  z-index: 0;
+}
+
+.panel > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* ── Typography Utilities ── */
+.font-display {
+  font-family: 'Cinzel', serif;
+  font-weight: 700;
+}
+
+.font-body {
+  font-family: 'Crimson Pro', Georgia, serif;
+  font-weight: 400;
+}
+
+.font-mono {
+  font-family: 'IBM Plex Mono', monospace;
+  font-weight: 400;
+}
+
+/* ── Dot Leader Rows ── */
+.dot-leader {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  font-family: 'Crimson Pro', Georgia, serif;
+  font-size: 14px;
+  color: var(--parchment);
+  padding: 3px 0;
+}
+
+.dot-leader::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px dotted var(--walnut-border);
+  margin: 0 4px;
+  position: relative;
+  top: -3px;
+}
+
+.dot-leader-value {
+  font-family: 'IBM Plex Mono', monospace;
+  font-weight: 500;
+  color: var(--parchment);
+  white-space: nowrap;
+}
+
+/* ── Online Breathing Dot ── */
+.online-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--verdigris);
+  box-shadow: 0 0 6px var(--verdigris);
+  animation: breathe 3s ease-in-out infinite;
+}
+
+/* ── Section Header ── */
+.section-header {
+  font-family: 'Cinzel', serif;
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 0.15em;
+  color: var(--parchment-dim);
+  text-transform: uppercase;
+  padding: 12px 0 8px;
+}
+
+/* ── Buttons ── */
+.btn-outline {
+  background: transparent;
+  border: 1px solid var(--ember);
+  color: var(--ember);
+  font-family: 'Cinzel', serif;
+  font-weight: 600;
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  padding: 8px 16px;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: all 150ms ease;
+}
+
+.btn-outline:hover {
+  background: var(--glow-ember);
+  border-color: var(--ember-glow);
+  color: var(--ember-glow);
+}
+
+.btn-solid {
+  background: var(--ember);
+  border: 1px solid var(--ember);
+  color: var(--void);
+  font-family: 'Cinzel', serif;
+  font-weight: 600;
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  padding: 10px 20px;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: all 150ms ease;
+}
+
+.btn-solid:hover {
+  background: var(--ember-glow);
+  border-color: var(--ember-glow);
+  box-shadow: 0 0 16px var(--glow-ember);
+}
+
+.btn-ghost {
+  background: transparent;
+  border: 1px solid var(--walnut-border);
+  color: var(--parchment-dim);
+  font-family: 'Cinzel', serif;
+  font-weight: 600;
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  padding: 8px 16px;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: all 150ms ease;
+}
+
+.btn-ghost:hover {
+  border-color: var(--parchment-dim);
+  color: var(--parchment);
+}
+
+/* ── Form Inputs ── */
+.input-field {
+  background: var(--void);
+  border: 1px solid var(--walnut-border);
+  color: var(--parchment);
+  font-family: 'Crimson Pro', Georgia, serif;
+  font-size: 15px;
+  padding: 10px 12px;
+  border-radius: 2px;
+  width: 100%;
+  outline: none;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.input-field:focus {
+  border-color: var(--ember);
+  box-shadow: 0 0 0 1px var(--glow-ember);
+}
+
+.input-field::placeholder {
+  color: var(--parchment-dim);
+  font-style: italic;
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--walnut);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--walnut-border);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--parchment-dim);
+}
+
+/* ── Animations ── */
+@keyframes breathe {
+  0%, 100% { box-shadow: 0 0 4px var(--verdigris); opacity: 0.8; }
+  50%      { box-shadow: 0 0 8px var(--verdigris); opacity: 1; }
+}
+
+@keyframes coinPulse {
+  0%, 100% { text-shadow: 0 0 4px var(--glow-gold); }
+  50%      { text-shadow: 0 0 12px var(--glow-gold); }
+}
+
+@keyframes panelReveal {
+  from { opacity: 0; transform: scale(0.96) translateY(8px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+@keyframes unfurl {
+  from { opacity: 0; transform: scaleY(0.3); clip-path: inset(0 0 70% 0); }
+  to   { opacity: 1; transform: scaleY(1); clip-path: inset(0); }
+}
+
+@keyframes feedSlide {
+  from { opacity: 0; transform: translateX(-12px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes slideIn {
+  from { transform: translateX(-100%); }
+  to   { transform: translateX(0); }
+}
+
+@keyframes slideOut {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-100%); }
+}
+
+@keyframes riseUp {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.9); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes modalReveal {
+  from { opacity: 0; transform: scale(0.95); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}

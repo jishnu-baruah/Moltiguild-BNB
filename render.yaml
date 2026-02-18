@@ -1,0 +1,96 @@
+# Render Blueprint - MoltiGuild
+# Push to GitHub → Render auto-detects this file → deploys services
+
+services:
+  # ═══════════════════════════════════════
+  # Coordinator API (required)
+  # ═══════════════════════════════════════
+  - type: web
+    name: moltiguild-api
+    runtime: docker
+    dockerfilePath: deploy/api/Dockerfile
+    dockerContext: .
+    plan: free
+    healthCheckPath: /api/status
+    envVars:
+      - key: COORDINATOR_PRIVATE_KEY
+        sync: false
+      - key: ADMIN_API_KEY
+        sync: false
+      - key: UPSTASH_REDIS_REST_URL
+        sync: false
+      - key: UPSTASH_REDIS_REST_TOKEN
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: MONAD_RPC
+        value: https://testnet-rpc.monad.xyz
+      - key: CHAIN_ID
+        value: "10143"
+      - key: GUILD_REGISTRY_ADDRESS
+        value: "0x60395114FB889C62846a574ca4Cda3659A95b038"
+      - key: GOLDSKY_ENDPOINT
+        value: "https://api.goldsky.com/api/public/project_cmlgbdp3o5ldb01uv0nu66cer/subgraphs/agentguilds-monad-testnet-monad-testnet/v5/gn"
+      - key: DATA_DIR
+        value: /app/data
+
+  # ═══════════════════════════════════════
+  # Telegram Bot
+  # ═══════════════════════════════════════
+  - type: worker
+    name: moltiguild-tg-bot
+    runtime: docker
+    dockerfilePath: deploy/tg-bot/Dockerfile
+    dockerContext: .
+    plan: free
+    envVars:
+      - key: TG_BOT_TOKEN
+        sync: false
+      - key: API_URL
+        value: https://moltiguild-api.onrender.com
+      - key: ADMIN_API_KEY
+        sync: false
+
+  # ═══════════════════════════════════════
+  # Coordinator API — MAINNET
+  # ═══════════════════════════════════════
+  - type: web
+    name: moltiguild-api-mainnet
+    runtime: docker
+    dockerfilePath: deploy/api/Dockerfile
+    dockerContext: .
+    plan: free
+    healthCheckPath: /api/status
+    envVars:
+      - key: COORDINATOR_PRIVATE_KEY
+        sync: false
+      - key: ADMIN_API_KEY
+        sync: false
+      - key: UPSTASH_REDIS_REST_URL
+        sync: false
+      - key: UPSTASH_REDIS_REST_TOKEN
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: MONAD_RPC
+        value: https://rpc.monad.xyz
+      - key: CHAIN_ID
+        value: "143"
+      - key: GUILD_REGISTRY_ADDRESS
+        value: "0xD72De456b2Aa5217a4Fd2E4d64443Ac92FA28791"
+      - key: GOLDSKY_ENDPOINT
+        value: "https://api.goldsky.com/api/public/project_cmlpa4v2etj0n01vjc1nubxuw/subgraphs/agentguilds-mainnet-monad/v1/gn"
+      - key: EXPLORER_URL
+        value: "https://monad.socialscan.io/tx/"
+      - key: BUYBACK_TREASURY
+        value: "0x129aaaB806bc3f829e2cc4cC2Ac758e76974Ae6A"
+      - key: GUILD_TOKEN_ADDRESS
+        value: "0x01511c69DB6f00Fa88689bd4bcdfb13D97847777"
+      - key: DATA_DIR
+        value: /app/data
+
+  # ═══════════════════════════════════════
+  # Agent: Reviewer (Guild 0) — deploy manually as Web Service
+  # Agent: Creator (Guild 1)  — deploy manually as Web Service
+  # See README.md for env vars. Uses deploy/agent/Dockerfile
+  # ═══════════════════════════════════════

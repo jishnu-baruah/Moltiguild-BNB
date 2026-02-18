@@ -1,0 +1,138 @@
+{
+    "models": {
+        "providers": {
+            "ollama-cloud": {
+                "baseUrl": "https://ollama.com/v1",
+                "api": "openai-completions",
+                "apiKey": "e109a365da8143339ba87e55f789a6f3.-v0jrIHLOfokUuHIjdT5zFlW",
+                "models": [
+                    {
+                        "id": "gpt-oss:120b",
+                        "name": "GPT-OSS 120B"
+                    },
+                    {
+                        "id": "kimi-k2.5",
+                        "name": "Kimi K2.5"
+                    }
+                ]
+            }
+        }
+    },
+    "agents": {
+        "defaults": {
+            "model": {
+                "primary": "ollama-cloud/kimi-k2.5"
+            }
+        },
+        "list": [
+            {
+                "id": "coordinator",
+                "name": "AgentGuilds Coordinator",
+                "workspace": "~/.openclaw/workspace-coordinator",
+                "tools": {
+                    "allow": [
+                        "exec",
+                        "read",
+                        "write",
+                        "sessions_spawn",
+                        "sessions_send"
+                    ]
+                }
+            },
+            {
+                "id": "writer",
+                "name": "Meme Writer",
+                "workspace": "~/.openclaw/workspace-writer",
+                "tools": {
+                    "allow": [
+                        "read"
+                    ],
+                    "deny": [
+                        "exec",
+                        "write",
+                        "browser",
+                        "sessions_spawn"
+                    ]
+                }
+            },
+            {
+                "id": "director",
+                "name": "Creative Director",
+                "workspace": "~/.openclaw/workspace-director",
+                "tools": {
+                    "allow": [
+                        "read"
+                    ],
+                    "deny": [
+                        "exec",
+                        "write",
+                        "browser",
+                        "sessions_spawn"
+                    ]
+                }
+            }
+        ]
+    },
+    "session": {
+        "dmScope": "per-channel-peer"
+    },
+    "bindings": [
+        {
+            "agentId": "coordinator",
+            "match": {
+                "channel": "telegram"
+            }
+        }
+    ],
+    "channels": {
+        "telegram": {
+            "enabled": true,
+            "botToken": "7715256287:AAF1-cTTqsJpVCHwDQmHo93n1juQ1dJXcbY",
+            "dmPolicy": "open",
+            "allowFrom": [
+                "*"
+            ],
+            "groups": {
+                "*": {
+                    "requireMention": true
+                }
+            }
+        }
+    },
+    "gateway": {
+        "mode": "local",
+        "bind": "lan",
+        "trustedProxies": ["127.0.0.1/8", "172.16.0.0/12", "10.0.0.0/8"],
+        "controlUi": {
+            "dangerouslyDisableDeviceAuth": true,
+            "allowInsecureAuth": true,
+            "allowedOrigins": ["http://localhost:3000", "http://localhost:3001", "https://moltiguild.vercel.app", "https://moltiguild.netlify.app", "https://moltiguild.fun", "https://www.moltiguild.fun", "https://web-3xg16m702-jishnu-baruahs-projects.vercel.app", "https://web-pied-tau-40.vercel.app"]
+        },
+        "auth": {
+            "mode": "token",
+            "token": "agentguilds-gateway-2026"
+        }
+    },
+    "tools": {
+        "agentToAgent": {
+            "enabled": true,
+            "allow": [
+                "coordinator",
+                "writer",
+                "director"
+            ]
+        }
+    },
+    "skills": {
+        "load": {
+            "extraDirs": ["/app/skills"]
+        }
+    },
+    "plugins": {
+        "entries": {
+            "telegram": {
+                "enabled": true
+            }
+        }
+    }
+}

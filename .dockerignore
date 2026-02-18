@@ -1,0 +1,45 @@
+# Dependencies
+node_modules/
+*/node_modules/
+
+# OpenClaw repo (large, mounted separately if needed)
+openclaw-repo/
+
+# Environment (secrets)
+.env
+.env.*
+!.env.example
+
+# Git
+.git/
+.gitignore
+
+# IDE
+.vscode/
+.idea/
+.claude/
+
+# Build artifacts
+dist/
+build/
+out/
+contracts/cache/
+contracts/out/
+contracts/broadcast/
+contracts/lib/
+coverage/
+
+# OS
+.DS_Store
+Thumbs.db
+*.log
+
+# Temporary
+*.tmp
+*.temp
+*.bak
+tmp/
+temp/
+nul
+data/
+!data/district-map.json

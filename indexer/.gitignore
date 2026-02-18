@@ -1,0 +1,18 @@
+# Goldsky deployment artifacts
+.goldsky/
+*.log
+
+# Environment files
+.env
+.env.local
+
+# Node modules (if any)
+node_modules/
+
+# Build artifacts
+build/
+dist/
+
+# OS files
+.DS_Store
+Thumbs.db

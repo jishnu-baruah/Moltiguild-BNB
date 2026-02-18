@@ -1,0 +1,78 @@
+# Environment variables
+.env
+.env.local
+.env.production
+
+# Dependencies
+node_modules/
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Build outputs
+dist/
+build/
+out/
+.next/
+
+# Foundry
+contracts/cache/
+contracts/out/
+contracts/broadcast/
+contracts/lib/
+
+# OpenClaw
+.openclaw/sessions/
+.openclaw/logs/
+
+# Ollama
+.ollama/
+
+# Docker
+*.log
+
+# IDE / Tools
+.vscode/
+.idea/
+.claude/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Testing
+coverage/
+.nyc_output/
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+tmp/
+temp/
+nul
+
+# Data files (runtime state)
+data/
+# Static seed data — commit to git (generated once, never changes)
+!data/district-map.json
+
+# Vercel
+.vercel
+
+# Goldsky
+.goldsky/
+
+# Private keys (extra safety)
+*.key
+*.pem
+*private*
+
+# Asset sources (keep only final PNGs)
+assets/**/*.psd
+assets/**/*.ai
+assets/**/*.sketch
+assets/**/*.xcf

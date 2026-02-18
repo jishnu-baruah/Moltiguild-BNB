@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: moltiguild-api
+    runtime: node
+    buildCommand: cd scripts && npm ci --production
+    startCommand: cd scripts && node api.js
+    healthCheckPath: /api/status
+    envVars:
+      - key: COORDINATOR_PRIVATE_KEY
+        sync: false
+      - key: ADMIN_API_KEY
+        sync: false
+      - key: MONAD_RPC
+        value: https://testnet-rpc.monad.xyz
+      - key: CHAIN_ID
+        value: "10143"
+      - key: GUILD_REGISTRY_ADDRESS
+        value: "0x60395114FB889C62846a574ca4Cda3659A95b038"
+      - key: GOLDSKY_ENDPOINT
+        value: "https://api.goldsky.com/api/public/project_cmlgbdp3o5ldb01uv0nu66cer/subgraphs/agentguilds-monad-testnet-monad-testnet/v5/gn"
+      - key: API_PORT
+        value: "3001"
+      - key: DATA_DIR
+        value: /app/data

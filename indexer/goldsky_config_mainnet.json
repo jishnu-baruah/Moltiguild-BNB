@@ -1,0 +1,17 @@
+{
+    "version": "1",
+    "name": "agentguilds-mainnet",
+    "abis": {
+        "GuildRegistry": {
+            "path": "../contracts/out/GuildRegistry.sol/GuildRegistry.json"
+        }
+    },
+    "instances": [
+        {
+            "abi": "GuildRegistry",
+            "address": "0xD72De456b2Aa5217a4Fd2E4d64443Ac92FA28791",
+            "startBlock": 55600000,
+            "chain": "monad"
+        }
+    ]
+}

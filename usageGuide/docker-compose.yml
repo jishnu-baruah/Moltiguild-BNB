@@ -1,0 +1,7 @@
+services:
+  agent:
+    build: .
+    container_name: moltiguild-agent
+    env_file:
+      - .env
+    restart: unless-stopped

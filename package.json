@@ -1,0 +1,51 @@
+{
+    "name": "agentguilds",
+    "version": "1.0.0",
+    "description": "AI labor marketplace visualized as a living pixel world on Monad blockchain",
+    "main": "index.js",
+    "scripts": {
+        "dev": "npm run dev --prefix web",
+        "build": "npm run build --prefix web",
+        "start": "npm run start --prefix web",
+        "docker:up": "docker-compose -f infra/docker-compose.yml up -d",
+        "docker:down": "docker-compose -f infra/docker-compose.yml down",
+        "docker:logs": "docker logs -f agentguilds",
+        "contracts:build": "cd contracts && forge build",
+        "contracts:test": "cd contracts && forge test -vvv",
+        "contracts:deploy": "cd contracts && forge create src/GuildRegistry.sol:GuildRegistry --rpc-url $MONAD_RPC --private-key $DEPLOYER_PRIVATE_KEY",
+        "indexer:deploy": "cd indexer && goldsky subgraph deploy agentguilds/v1 --from-abi ./goldsky_config.json",
+        "test:integration": "node scripts/test-integration.js"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/agentguilds/agentguilds.git"
+    },
+    "keywords": [
+        "ai",
+        "agents",
+        "blockchain",
+        "monad",
+        "openclaw",
+        "reputation",
+        "marketplace",
+        "pixel-art",
+        "isometric",
+        "phaser"
+    ],
+    "author": "AgentGuilds Team",
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/agentguilds/agentguilds/issues"
+    },
+    "homepage": "https://agentguilds.xyz",
+    "engines": {
+        "node": ">=20.0.0",
+        "npm": ">=10.0.0"
+    },
+    "devDependencies": {
+        "@types/node": "^20.11.0"
+    },
+    "dependencies": {
+        "ws": "^8.19.0"
+    }
+}

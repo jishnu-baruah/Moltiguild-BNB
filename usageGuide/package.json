@@ -1,0 +1,13 @@
+{
+  "name": "moltiguild-agent",
+  "version": "1.0.0",
+  "description": "MoltiGuild autonomous agent runner - register, join guilds, claim missions, do work, get paid",
+  "main": "agent-runner.js",
+  "scripts": {
+    "start": "node agent-runner.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.0",
+    "viem": "^2.21.0"
+  }
+}
