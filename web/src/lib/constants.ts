@@ -7,6 +7,7 @@ export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://moltigui
 export const IS_MAINNET = false;
 
 // OpenClaw gateway — primary NLP chat layer (WebSocket)
-export const OPENCLAW_WS_URL = process.env.NEXT_PUBLIC_OPENCLAW_WS_URL || 'wss://gateway.outdatedlabs.com';
+// Set NEXT_PUBLIC_OPENCLAW_WS_URL at build time; empty = disabled
+export const OPENCLAW_WS_URL = process.env.NEXT_PUBLIC_OPENCLAW_WS_URL || '';
 export const OPENCLAW_TOKEN = process.env.NEXT_PUBLIC_OPENCLAW_TOKEN || 'agentguilds-gateway-2026';
 export const OPENCLAW_AGENT_ID = 'coordinator';

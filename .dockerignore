@@ -5,10 +5,13 @@ node_modules/
 # OpenClaw repo (large, mounted separately if needed)
 openclaw-repo/
 
-# Environment (secrets)
+# Environment (secrets) — match at any depth
 .env
 .env.*
+**/.env
+**/.env.*
 !.env.example
+!**/.env.example
 
 # Git
 .git/

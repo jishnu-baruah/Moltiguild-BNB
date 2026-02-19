@@ -292,6 +292,7 @@ function scheduleReconnect(): void {
 export function connect(): void {
   if (ws) return;
   if (typeof window === 'undefined') return; // SSR guard
+  if (!OPENCLAW_WS_URL) return; // no gateway configured
 
   setState('connecting');
 
