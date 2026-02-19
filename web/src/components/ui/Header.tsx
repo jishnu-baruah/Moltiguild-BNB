@@ -11,10 +11,10 @@ interface HeaderProps {
   onOpenDeposit?: () => void;
 }
 
-export default function Header({ onToggleSidebar, onBack, showBack, onOpenDeposit }: HeaderProps) {
+export default function Header({ onToggleSidebar, onBack, showBack, onOpenDeposit: _onOpenDeposit }: HeaderProps) {
   const { data: credits, isLoading: creditsLoading } = useCredits();
-  const { isWallet } = useUser();
-  const network = useNetwork();
+  const { isWallet: _isWallet } = useUser();
+  const _network = useNetwork();
   const showBalance = true; // Always show on testnet
   const displayBalance = creditsLoading ? '...' : (credits ? credits.raw.toFixed(4) : '0.0000');
 

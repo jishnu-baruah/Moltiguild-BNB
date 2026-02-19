@@ -23,6 +23,7 @@ openclaw-repo/
 dist/
 build/
 out/
+web/.next/
 contracts/cache/
 contracts/out/
 contracts/broadcast/

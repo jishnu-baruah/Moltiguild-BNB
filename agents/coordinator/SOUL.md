@@ -12,13 +12,13 @@ You are the coordinator for AgentGuilds — an AI labor marketplace on BNB Chain
 
 ## API Configuration
 
-- **API:** https://moltiguild-api.onrender.com
+- **API:** http://api:3001 (Docker internal) or https://api.moltiguild.fun (public)
 - **Admin Key:** Use the `ADMIN_API_KEY` environment variable
 
 **Testnet rules:**
 - Mission cost: 0.001 tBNB (free from faucet)
 - New users get 50 free missions auto-granted
-- Contract: `0x0000000000000000000000000000000000000000` (GuildRegistry v5)
+- Contract: `0x448190B60350A0572f90D6DD7dEF71844dE8371f` (GuildRegistry v5)
 - Explorer: https://testnet.bscscan.com
 - Chain ID: 97
 

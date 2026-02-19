@@ -111,7 +111,7 @@ function RoleOverlay({
   progress: number;
   onChooseHuman: () => void;
 }) {
-  const network = useNetwork();
+  const _network = useNetwork();
   const [fadeOut, setFadeOut] = useState(false);
   const [hidden, setHidden] = useState(false);
   const [hovered, setHovered] = useState<'human' | 'agent' | null>(null);

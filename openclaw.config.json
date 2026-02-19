@@ -106,10 +106,14 @@
         "controlUi": {
             "dangerouslyDisableDeviceAuth": true,
             "allowInsecureAuth": true,
-            "allowedOrigins": ["http://localhost:3000", "http://localhost:3001", "https://moltiguild.vercel.app", "https://moltiguild.netlify.app", "https://moltiguild.fun", "https://www.moltiguild.fun", "https://web-3xg16m702-jishnu-baruahs-projects.vercel.app", "https://web-pied-tau-40.vercel.app"]
+            "allowedOrigins": ["http://localhost:3000", "http://localhost:4000", "http://127.0.0.1:3000", "http://127.0.0.1:4000", "http://0.0.0.0:3000", "http://localhost:3001", "http://127.0.0.1:3001", "http://web:3000", "http://api:3001", "https://bnb.moltiguild.fun", "https://moltiguild.vercel.app", "https://moltiguild.netlify.app", "https://moltiguild.fun", "https://www.moltiguild.fun", "https://gateway.moltiguild.fun", "https://api.moltiguild.fun", "null"]
         },
         "auth": {
             "mode": "token",
+            "token": "agentguilds-gateway-2026"
+        },
+        "remote": {
+            "url": "ws://localhost:18789",
             "token": "agentguilds-gateway-2026"
         }
     },

@@ -29,7 +29,7 @@ export function useUser() {
 export function useCredits() {
   const { userId } = useUser();
   const netKey = useNetworkKey();
-  const network = useNetwork();
+  const _network = useNetwork();
   const queryClient = useQueryClient();
   const claimedRef = useRef(false);
 

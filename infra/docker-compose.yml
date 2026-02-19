@@ -1,0 +1,127 @@
+# MoltiGuild-BNB — Single-droplet Docker Compose
+#
+# Profiles:
+#   docker compose up                                → api + web + cloudflared
+#   docker compose --profile full up                 → + openclaw + tg-bot
+#   docker compose --profile agents up               → + agent-fleet
+#   docker compose --profile full --profile agents up → everything
+#
+# Run from repo root (--env-file needed for variable substitution):
+#   docker compose --env-file .env -f infra/docker-compose.yml up --build
+
+services:
+  # ─── Express API (always on) ───
+  api:
+    build:
+      context: ..
+      dockerfile: deploy/api/Dockerfile
+    container_name: moltiguild-api
+    restart: unless-stopped
+    ports:
+      - "${API_PORT:-3001}:3001"
+    env_file: ../.env
+    environment:
+      - DATA_DIR=/data
+      - NODE_ENV=production
+    volumes:
+      - moltiguild-data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  # ─── Next.js Frontend (always on) ───
+  web:
+    build:
+      context: ..
+      dockerfile: deploy/web/Dockerfile
+      args:
+        NEXT_PUBLIC_CHAIN_ID: ${NEXT_PUBLIC_CHAIN_ID:-97}
+        NEXT_PUBLIC_GUILD_REGISTRY_ADDRESS: ${NEXT_PUBLIC_GUILD_REGISTRY_ADDRESS}
+        NEXT_PUBLIC_GOLDSKY_ENDPOINT: ${NEXT_PUBLIC_GOLDSKY_ENDPOINT}
+        NEXT_PUBLIC_MONAD_RPC: ${NEXT_PUBLIC_MONAD_RPC:-https://data-seed-prebsc-1-s1.bnbchain.org:8545}
+        NEXT_PUBLIC_EXPLORER_URL: ${NEXT_PUBLIC_EXPLORER_URL:-https://testnet.bscscan.com}
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://api:3001}
+    container_name: moltiguild-web
+    restart: unless-stopped
+    ports:
+      - "${WEB_PORT:-3000}:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://api:3001}
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:3000').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+  # ─── Cloudflare Tunnel (always on) ───
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: moltiguild-tunnel
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run --token ${CF_TUNNEL_TOKEN}
+    env_file: ../.env
+    depends_on:
+      - api
+      - web
+
+  # ─── OpenClaw Gateway (profile: full) ───
+  openclaw:
+    build:
+      context: ..
+      dockerfile: infra/Dockerfile
+    container_name: moltiguild-openclaw
+    restart: unless-stopped
+    profiles: ["full"]
+    ports:
+      - "18789:18789"
+    env_file: ../.env
+    volumes:
+      - ../openclaw.config.json:/config/openclaw.config.json:ro
+      - ../agents:/config/agents:ro
+    depends_on:
+      api:
+        condition: service_healthy
+
+  # ─── Telegram Bot (profile: full) ───
+  tg-bot:
+    build:
+      context: ..
+      dockerfile: deploy/tg-bot/Dockerfile
+    container_name: moltiguild-tg-bot
+    restart: unless-stopped
+    profiles: ["full"]
+    env_file: ../.env
+    environment:
+      - API_URL=http://api:3001
+    depends_on:
+      api:
+        condition: service_healthy
+
+  # ─── Agent Fleet (profile: agents) ───
+  agent-fleet:
+    build:
+      context: ..
+      dockerfile: deploy/agent-fleet/Dockerfile
+    container_name: moltiguild-agents
+    restart: unless-stopped
+    profiles: ["agents"]
+    env_file: ../.env
+    environment:
+      - API_URL=http://api:3001
+      - DATA_DIR=/data
+    volumes:
+      - moltiguild-data:/data
+    depends_on:
+      api:
+        condition: service_healthy
+
+volumes:
+  moltiguild-data:
+    driver: local

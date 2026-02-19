@@ -23,7 +23,7 @@ export const NETWORKS: Record<string, NetworkConfig> = {
     name: 'BNB Testnet',
     chainId: 97,
     rpc: 'https://data-seed-prebsc-1-s1.bnbchain.org:8545',
-    apiUrl: process.env.NEXT_PUBLIC_TESTNET_API_URL || 'https://moltiguild-api.onrender.com',
+    apiUrl: process.env.NEXT_PUBLIC_TESTNET_API_URL || '',
     contractAddress: process.env.NEXT_PUBLIC_GUILD_REGISTRY_ADDRESS || '0x0000000000000000000000000000000000000000',
     goldskyEndpoint: '',
     explorerUrl: 'https://testnet.bscscan.com',

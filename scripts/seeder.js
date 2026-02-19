@@ -32,7 +32,7 @@ if (!MNEMONIC) {
 
 const STATE_FILE = path.join(__dirname, '..', 'data', 'seeder-state.json');
 const MISSION_BUDGET = parseEther('0.001');
-const AGENT_SPLIT_RATIO = 90n; // 90% to agent, 10% protocol fee
+const AGENT_SPLIT_RATIO = 85n; // 85% agent, 10% coordinator, 5% buyback (v5 contract)
 
 // ═══════════════════════════════════════
 // GUILD DEFINITIONS (~50 guilds)
@@ -198,7 +198,7 @@ function deriveAgent(index) {
 const MONAD_RPC = process.env.MONAD_RPC || 'https://data-seed-prebsc-1-s1.bnbchain.org:8545';
 const CHAIN_ID = parseInt(process.env.CHAIN_ID || '97');
 const GUILD_REGISTRY_ADDRESS = process.env.GUILD_REGISTRY_ADDRESS || '0x60395114FB889C62846a574ca4Cda3659A95b038';
-const GAS_FUND = parseEther('0.05'); // gas for joinGuild tx
+const GAS_FUND = parseEther('0.002'); // gas for joinGuild tx (BSC testnet gas is cheap)
 
 const monadTestnet = {
   id: CHAIN_ID,

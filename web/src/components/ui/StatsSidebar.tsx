@@ -51,7 +51,7 @@ export default function StatsSidebar({ open }: StatsSidebarProps) {
   const { data: onlineAgents } = useOnlineAgents();
   const { isWallet } = useUser();
   const feed = useSSEFeed();
-  const network = useNetwork();
+  const _network = useNetwork();
 
   const onlineCount = onlineAgents?.length ?? 0;
   const balance = credits ? credits.raw.toFixed(4) : '0.0000';
