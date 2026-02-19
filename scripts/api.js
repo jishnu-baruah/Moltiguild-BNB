@@ -46,6 +46,17 @@ require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
 const app = express();
 app.use(express.json());
 
+// ── Simple TTL cache for slow RPC-backed endpoints ──
+const _cache = {};
+function timedCache(key, ttlMs, fn) {
+    const entry = _cache[key];
+    if (entry && Date.now() - entry.ts < ttlMs) return entry.promise;
+    const promise = fn().then(data => { _cache[key] = { ts: Date.now(), promise: Promise.resolve(data) }; return data; })
+        .catch(err => { delete _cache[key]; throw err; });
+    _cache[key] = { ts: Date.now(), promise };
+    return promise;
+}
+
 // Health check — lightweight, for uptime monitors
 app.get('/health', (req, res) => res.json({ ok: true, uptime: Math.floor(process.uptime()) }));
 
@@ -1316,14 +1327,15 @@ app.get('/api/mission/:id/rating', async (req, res) => {
     }
 });
 
-// GET /api/missions/open
+// GET /api/missions/open (cached 60s — heavy RPC fallback)
 app.get('/api/missions/open', async (req, res) => {
     try {
         const { guildId } = req.query;
-        let missions;
-        if (guildId) {
-            missions = await monad.getMissionsByGuild(parseInt(guildId));
-        } else {
+        const cacheKey = `missions:open:${guildId || 'all'}`;
+        const missions = await timedCache(cacheKey, 60_000, async () => {
+            if (guildId) {
+                return monad.getMissionsByGuild(parseInt(guildId));
+            }
             // Use Goldsky with v5 schema
             try {
                 const data = await monad.queryGoldsky(`{
@@ -1333,27 +1345,33 @@ app.get('/api/missions/open', async (req, res) => {
                     missionCompleteds { missionId }
                 }`);
                 const completedIds = new Set(data.missionCompleteds.map(m => m.missionId));
-                missions = data.missionCreateds.filter(m => !completedIds.has(m.missionId));
+                return data.missionCreateds.filter(m => !completedIds.has(m.missionId));
             } catch {
-                // Fallback to RPC
-                const count = Number(await monad.readContract('getMissionCount'));
-                missions = [];
-                for (let i = 0; i < count; i++) {
-                    const m = await monad.readContract('getMission', [BigInt(i)]);
-                    if (!m.completed) {
-                        const claimer = await monad.getMissionClaim(i);
-                        missions.push({
-                            missionId: String(i),
+                // Fallback to RPC — limit to last 50 to avoid timeout
+                const count = Math.min(Number(await monad.readContract('getMissionCount')), 50);
+                const missions = [];
+                const BATCH = 5;
+                for (let i = 0; i < count; i += BATCH) {
+                    const batch = [];
+                    for (let j = i; j < Math.min(i + BATCH, count); j++) batch.push(j);
+                    const results = await Promise.all(batch.map(async (idx) => {
+                        const m = await monad.readContract('getMission', [BigInt(idx)]);
+                        if (m.completed) return null;
+                        const claimer = await monad.getMissionClaim(idx);
+                        return {
+                            missionId: String(idx),
                             guildId: m.guildId.toString(),
                             client: m.client,
                             budget: m.budget.toString(),
                             claimed: claimer !== '0x0000000000000000000000000000000000000000',
                             claimer: claimer !== '0x0000000000000000000000000000000000000000' ? claimer : null,
-                        });
-                    }
+                        };
+                    }));
+                    missions.push(...results.filter(Boolean));
                 }
+                return missions;
             }
-        }
+        });
         res.json({ ok: true, data: { count: missions.length, missions } });
     } catch (err) {
         res.status(500).json({ ok: false, error: err.message });
@@ -1412,16 +1430,17 @@ async function getEnrichedGuilds(category) {
     return enriched;
 }
 
-// GET /api/guilds
+// GET /api/guilds (cached 60s — heavy RPC)
 app.get('/api/guilds', async (req, res) => {
     try {
-        const enriched = await getEnrichedGuilds(req.query.category);
-        // Attach plot assignments
-        const allPlots = worldState.getAllAssignments();
-        const guildsWithPlots = enriched.map(g => ({
-            ...g,
-            assignedPlot: worldState.getGuildPrimaryPlot(parseInt(g.guildId)) || null,
-        }));
+        const cacheKey = `guilds:${req.query.category || 'all'}`;
+        const guildsWithPlots = await timedCache(cacheKey, 60_000, async () => {
+            const enriched = await getEnrichedGuilds(req.query.category);
+            return enriched.map(g => ({
+                ...g,
+                assignedPlot: worldState.getGuildPrimaryPlot(parseInt(g.guildId)) || null,
+            }));
+        });
         res.json({ ok: true, data: { count: guildsWithPlots.length, guilds: guildsWithPlots } });
     } catch (err) {
         res.status(500).json({ ok: false, error: err.message });
