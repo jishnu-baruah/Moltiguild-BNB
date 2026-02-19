@@ -51,7 +51,7 @@ echo "[setup] Firewall: only SSH allowed (Cloudflare Tunnel handles web traffic)
 REPO_DIR=/opt/moltiguild-bnb
 if [ ! -d "$REPO_DIR" ]; then
   echo "[setup] Cloning MoltiGuild-BNB..."
-  git clone https://github.com/your-org/MoltiGuild-BNB.git "$REPO_DIR"
+  git clone https://github.com/jishnu-baruah/Moltiguild-BNB.git "$REPO_DIR"
 else
   echo "[setup] Repo exists, pulling latest..."
   cd "$REPO_DIR" && git pull
