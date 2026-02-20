@@ -44,8 +44,11 @@ COPY --from=builder /app/web/.next/standalone ./
 COPY --from=builder /app/web/.next/static ./.next/static
 COPY --from=builder /app/web/public ./public
 
+# WebSocket proxy wrapper (routes /gateway → openclaw container)
+COPY deploy/web/ws-proxy.js ./ws-proxy.js
+
 EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME=0.0.0.0
 
-CMD ["node", "server.js"]
+CMD ["node", "ws-proxy.js"]

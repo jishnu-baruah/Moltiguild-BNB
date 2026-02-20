@@ -84,11 +84,9 @@ services:
       - "18789:18789"
     env_file: ../.env
     environment:
-      - NODE_OPTIONS=--max-old-space-size=384
-    deploy:
-      resources:
-        limits:
-          memory: 512M
+      - NODE_OPTIONS=--max-old-space-size=768
+    mem_limit: 1g
+    memswap_limit: 3g
     volumes:
       - ../openclaw.config.json:/config/openclaw.config.json:ro
       - ../agents:/config/agents:ro

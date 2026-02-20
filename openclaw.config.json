@@ -38,38 +38,6 @@
                         "sessions_send"
                     ]
                 }
-            },
-            {
-                "id": "writer",
-                "name": "Meme Writer",
-                "workspace": "~/.openclaw/workspace-writer",
-                "tools": {
-                    "allow": [
-                        "read"
-                    ],
-                    "deny": [
-                        "exec",
-                        "write",
-                        "browser",
-                        "sessions_spawn"
-                    ]
-                }
-            },
-            {
-                "id": "director",
-                "name": "Creative Director",
-                "workspace": "~/.openclaw/workspace-director",
-                "tools": {
-                    "allow": [
-                        "read"
-                    ],
-                    "deny": [
-                        "exec",
-                        "write",
-                        "browser",
-                        "sessions_spawn"
-                    ]
-                }
             }
         ]
     },
@@ -135,7 +103,7 @@
     "plugins": {
         "entries": {
             "telegram": {
-                "enabled": true
+                "enabled": false
             }
         }
     }
