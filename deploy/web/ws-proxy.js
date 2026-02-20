@@ -14,6 +14,8 @@ const url = require('url');
 const PORT = parseInt(process.env.PORT || '3000');
 const GATEWAY_HOST = process.env.OPENCLAW_HOST || 'openclaw';
 const GATEWAY_PORT = parseInt(process.env.OPENCLAW_PORT || '18789');
+const API_HOST = process.env.API_HOST || 'api';
+const API_PORT = parseInt(process.env.API_PORT || '3001');
 const NEXT_PORT = PORT + 1; // Next.js listens on internal port
 
 // Start Next.js on the internal port
@@ -21,14 +23,36 @@ const nextEnv = { ...process.env, PORT: String(NEXT_PORT), HOSTNAME: '127.0.0.1'
 const next = spawn('node', ['server.js'], { env: nextEnv, stdio: 'inherit' });
 next.on('exit', (code) => { console.log(`[ws-proxy] Next.js exited (${code})`); process.exit(code || 0); });
 
-// Create the front-facing HTTP server that proxies everything to Next.js
+// Create the front-facing HTTP server
 const server = http.createServer((req, res) => {
+    const pathname = url.parse(req.url).pathname;
+
+    // Route /api/* to the API container
+    if (pathname.startsWith('/api/') || pathname === '/api') {
+        const opts = { hostname: API_HOST, port: API_PORT, path: req.url, method: req.method, headers: req.headers };
+        const proxy = http.request(opts, (proxyRes) => {
+            res.writeHead(proxyRes.statusCode, proxyRes.headers);
+            proxyRes.pipe(res);
+        });
+        proxy.on('error', () => { res.writeHead(502); res.end('API unavailable'); });
+        req.pipe(proxy);
+        return;
+    }
+
+    // Everything else → Next.js
     const opts = { hostname: '127.0.0.1', port: NEXT_PORT, path: req.url, method: req.method, headers: req.headers };
     const proxy = http.request(opts, (proxyRes) => {
-        res.writeHead(proxyRes.statusCode, proxyRes.headers);
+        const headers = { ...proxyRes.headers };
+        // Prevent Cloudflare edge from caching HTML pages for a year
+        const ct = (headers['content-type'] || '');
+        if (ct.includes('text/html')) {
+            headers['cache-control'] = 'no-cache, no-store, must-revalidate';
+            delete headers['x-nextjs-cache'];
+        }
+        res.writeHead(proxyRes.statusCode, headers);
         proxyRes.pipe(res);
     });
-    proxy.on('error', (err) => { res.writeHead(502); res.end('Bad Gateway'); });
+    proxy.on('error', () => { res.writeHead(502); res.end('Bad Gateway'); });
     req.pipe(proxy);
 });
 
@@ -73,7 +97,7 @@ server.on('upgrade', (req, socket, head) => {
 });
 
 server.listen(PORT, '0.0.0.0', () => {
-    console.log(`[ws-proxy] Listening on :${PORT}, Next.js on :${NEXT_PORT}, gateway → ${GATEWAY_HOST}:${GATEWAY_PORT}`);
+    console.log(`[ws-proxy] Listening on :${PORT}, Next.js on :${NEXT_PORT}, API → ${API_HOST}:${API_PORT}, gateway → ${GATEWAY_HOST}:${GATEWAY_PORT}`);
 });
 
 process.on('SIGTERM', () => { next.kill(); server.close(); });

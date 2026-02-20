@@ -67,11 +67,15 @@ type Frame = RequestFrame | ResponseFrame | EventFrame;
 let ws: WebSocket | null = null;
 let state: ConnectionState = 'disconnected';
 let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+let keepaliveTimer: ReturnType<typeof setInterval> | null = null;
+let connectTimer: ReturnType<typeof setTimeout> | null = null;
 let reconnectAttempts = 0;
 let reqCounter = 0;
 
 const BASE_RECONNECT_DELAY = 1000;
 const MAX_RECONNECT_DELAY = 30000;
+const KEEPALIVE_INTERVAL = 30000; // 30s — Cloudflare tunnel drops idle WS after ~100s
+const CONNECT_TIMEOUT = 5000; // 5s — abort if WS doesn't open (IPv6 edge bug workaround)
 
 const stateListeners = new Set<StateCallback>();
 const chatListeners = new Set<ChatCallback>();
@@ -123,6 +127,28 @@ function sendRequest(method: string, params: Record<string, unknown>): Promise<R
 
 /* ── Handshake ─────────────────────────────────────────────────────── */
 
+function startKeepalive(): void {
+  stopKeepalive();
+  keepaliveTimer = setInterval(() => {
+    if (!ws || ws.readyState !== WebSocket.OPEN) return;
+    // Send a lightweight health request to keep the Cloudflare tunnel alive
+    sendRequest('health', {}).catch(() => {
+      // If health ping fails, the connection is dead — force reconnect
+      console.warn('[openclaw] keepalive failed, reconnecting');
+      if (ws) { ws.close(); ws = null; }
+      setState('error');
+      scheduleReconnect();
+    });
+  }, KEEPALIVE_INTERVAL);
+}
+
+function stopKeepalive(): void {
+  if (keepaliveTimer) {
+    clearInterval(keepaliveTimer);
+    keepaliveTimer = null;
+  }
+}
+
 function handleChallenge(_nonce: string): void {
   sendRequest('connect', {
     minProtocol: 3,
@@ -141,6 +167,7 @@ function handleChallenge(_nonce: string): void {
   }).then(() => {
     setState('connected');
     reconnectAttempts = 0;
+    startKeepalive();
   }).catch((err) => {
     console.error('[openclaw] handshake failed:', err);
     setState('error');
@@ -305,7 +332,22 @@ export function connect(): void {
     return;
   }
 
+  // Abort if the connection doesn't open in time.
+  // Cloudflare IPv6 edge nodes sometimes hang on WebSocket upgrade;
+  // closing and retrying may land on a working edge.
+  connectTimer = setTimeout(() => {
+    connectTimer = null;
+    if (ws && ws.readyState === WebSocket.CONNECTING) {
+      console.warn('[openclaw] connect timeout, retrying');
+      ws.close();
+      ws = null;
+      setState('error');
+      scheduleReconnect();
+    }
+  }, CONNECT_TIMEOUT);
+
   ws.onopen = () => {
+    if (connectTimer) { clearTimeout(connectTimer); connectTimer = null; }
     // Wait for connect.challenge event — don't set connected yet
   };
 
@@ -324,6 +366,8 @@ export function connect(): void {
 
   ws.onclose = () => {
     ws = null;
+    if (connectTimer) { clearTimeout(connectTimer); connectTimer = null; }
+    stopKeepalive();
     // Reject all pending requests
     for (const [id, pending] of pendingRequests) {
       pending.reject(new Error('Connection closed'));
@@ -337,6 +381,7 @@ export function connect(): void {
 }
 
 export function disconnect(): void {
+  stopKeepalive();
   if (reconnectTimer) {
     clearTimeout(reconnectTimer);
     reconnectTimer = null;

@@ -103,8 +103,9 @@ export class GuildHallManager {
 
       if (existing) {
         // Upgrade if tier changed or plot coordinates changed
-        const plotChanged = guild.assignedPlot &&
-          (existing.col !== guild.assignedPlot.col || existing.row !== guild.assignedPlot.row);
+        const newCol = guild.assignedPlot?.col ?? guild.position.x;
+        const newRow = guild.assignedPlot?.row ?? guild.position.y;
+        const plotChanged = existing.col !== newCol || existing.row !== newRow;
         if (existing.tier !== guild.tier || plotChanged) {
           this.removeHall(existing);
           this.halls = this.halls.filter(h => h !== existing);
@@ -119,12 +120,13 @@ export class GuildHallManager {
   private placeHall(guild: GuildVisual): void {
     if (!this.tilemapManager) return;
 
-    // Server-authoritative: only place guilds that have an assigned plot
     if (guild.assignedPlot) {
+      // Server-authoritative plot assignment takes priority
       this.placeAtServerCoords(guild, guild.assignedPlot.col, guild.assignedPlot.row);
+    } else {
+      // Fallback: use deterministic position from getGuildPosition()
+      this.placeAtServerCoords(guild, guild.position.x, guild.position.y);
     }
-    // No server assignment — skip. Guilds appear once assigned via world governance.
-    // The guild list panel shows all guilds regardless of plot status.
   }
 
   /**
